@@ -1,4 +1,4 @@
-# Spgnigeria - Subproject Workflow
+﻿# Spgnigeria - Subproject Workflow
 
 **Domain:** www.spgnigeria.com  
 **Contact:** info@spgnigeria.com  
@@ -260,3 +260,205 @@ foreach ($file in $files) {
 
 **Created:** February 1, 2026  
 **Status:** Awaiting initialization
+
+---
+
+## 🚀 Stage 11: Deployment Package - CRITICAL REQUIREMENTS
+
+### ⚠️ BEFORE CREATING ZIP - CHECKLIST:
+
+#### 1. **Email Backend Verification** (contact_handler.php)
+```powershell
+# MUST CHECK ORIGINAL SITE FOR EMAIL CONFIGURATION
+# Go to: https://original-domain.com (inspect contact form submission)
+# Find: Email recipient address in form action or backend
+
+# Example: contact_handler.php should have:
+$to = "info@client-domain.com";  // ← CHECK ORIGINAL SITE FOR THIS!
+$subject = "Contact Form Submission from Website";
+```
+
+**Steps:**
+1. Open original website in browser
+2. Open DevTools → Network tab
+3. Submit contact form
+4. Check POST request for email destination
+5. Update `contact_handler.php` with correct email address
+6. Test locally before deploying
+
+---
+
+#### 2. **.htaccess Configuration** (Must be Namecheap-ready)
+```apache
+# filepath: .htaccess
+
+# PRODUCTION CONFIGURATION FOR NAMECHEAP
+# Force HTTPS (Namecheap provides SSL certificate)
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Remove .html extension from URLs
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([^\.]+)$ $1.html [NC,L]
+
+# Custom error pages (optional)
+ErrorDocument 404 /404.html
+ErrorDocument 500 /500.html
+
+# Security headers
+Header set X-Content-Type-Options "nosniff"
+Header set X-Frame-Options "SAMEORIGIN"
+Header set X-XSS-Protection "1; mode=block"
+
+# Cache control for better performance
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
+```
+
+**Important:** 
+- ✅ Namecheap provides SSL certificate automatically
+- ✅ Our local SSL (`C:\ssl\`) is ONLY for local testing
+- ❌ Do NOT include local SSL certificates in deployment ZIP
+
+---
+
+#### 3. **HTTPS Redirect Scripts - RE-ENABLE FOR DEPLOYMENT**
+```powershell
+# If you disabled HTTPS redirect for local testing, RE-ENABLE IT NOW!
+
+$files = @('index.html', 'about-us.html', 'services.html', 'contact.html')
+foreach ($file in $files) {
+    if (Test-Path $file) {
+        $content = Get-Content $file -Raw -Encoding UTF8
+        # Remove comment tags around HTTPS redirect script
+        $content = $content -replace '<!-- DISABLED FOR LOCAL TESTING:\s*', ''
+        $content = $content -replace '\s*-->\s*<!-- END DISABLED HTTPS REDIRECT -->', ''
+        $content | Set-Content $file -Encoding UTF8 -NoNewline
+        Write-Host "✅ Re-enabled HTTPS redirect in $file"
+    }
+}
+```
+
+---
+
+#### 4. **Remove Local Testing Files from ZIP**
+**DO NOT INCLUDE:**
+- ❌ `start.ps1` (local SSL launcher)
+- ❌ `start_ssl_server.ps1` (universal SSL launcher)
+- ❌ Any `.ps1` PowerShell scripts
+- ❌ `README.md` (optional - keep if useful for client)
+- ❌ `.git/` folder (if present)
+
+**MUST INCLUDE:**
+- ✅ All HTML files
+- ✅ `images/` folder
+- ✅ `assets/` folder (css, js)
+- ✅ `fonts/` folder (if applicable)
+- ✅ `contact_handler.php` (with correct email)
+- ✅ `.htaccess` (production-ready)
+
+---
+
+#### 5. **Create Deployment ZIP**
+```powershell
+# Navigate to project folder
+cd "C:\Users\Alaa\Documents\githup\Selenium\<project-name>"
+
+# Create ZIP excluding local testing files
+$exclude = @('*.ps1', 'README.md', '.git')
+$source = Get-ChildItem -Exclude $exclude
+Compress-Archive -Path $source -DestinationPath "project_deployment.zip" -Force
+
+Write-Host "✅ Deployment package created: project_deployment.zip"
+Write-Host "📦 Ready for Namecheap upload!"
+```
+
+---
+
+### 📋 Pre-Deployment Checklist
+
+Before uploading to Namecheap, verify:
+
+- [ ] **Email Backend**: `contact_handler.php` points to correct client email
+- [ ] **HTTPS Redirects**: Re-enabled in all HTML files (if disabled for local testing)
+- [ ] **Navigation Links**: Using relative paths (`about-us.html`, not `/about-us`)
+- [ ] **.htaccess**: Production configuration (HTTPS redirect, clean URLs)
+- [ ] **Tracking Scripts**: Re-enabled (Google Analytics, etc.)
+- [ ] **Image Paths**: All using local paths (no CDN URLs)
+- [ ] **CSS/JS Paths**: All using local paths (no CDN URLs)
+- [ ] **No Local Testing Files**: Removed `.ps1` scripts from ZIP
+- [ ] **Test ZIP Contents**: Extract and verify all files present
+
+---
+
+### 🎯 Namecheap Deployment Steps
+
+1. **Login to Namecheap cPanel**
+2. **Navigate to File Manager**
+3. **Go to `public_html` directory**
+4. **Delete existing files** (if replacing old site)
+5. **Upload `project_deployment.zip`**
+6. **Extract ZIP** (right-click → Extract)
+7. **Delete ZIP file** after extraction
+8. **Set file permissions** (if needed):
+   - HTML files: 644
+   - Folders: 755
+   - PHP files: 644
+9. **Test website**: Visit `https://yourdomain.com`
+10. **Test contact form**: Submit and verify email received
+
+---
+
+### 🔒 SSL Certificate on Namecheap
+
+- Namecheap provides **FREE SSL certificate** (Let's Encrypt)
+- SSL activates automatically within 24 hours
+- Our local SSL (`C:\ssl\`) is **ONLY for local testing**
+- `.htaccess` HTTPS redirect will work once Namecheap SSL is active
+
+---
+
+### 📧 Email Configuration Notes
+
+**Common Email Patterns:**
+- `info@domain.com`
+- `contact@domain.com`
+- `admin@domain.com`
+- `support@domain.com`
+
+**How to Find:**
+1. Check original site's contact form submission (DevTools → Network)
+2. Ask client for their business email
+3. Check domain's email hosting (Namecheap email, Gmail, etc.)
+
+**Update in contact_handler.php:**
+```php
+$to = "info@client-domain.com";  // ← VERIFY THIS!
+$from = $_POST['email'];
+$subject = "Contact Form Submission";
+```
+
+---
+
+### ✅ Final Verification
+
+After deployment to Namecheap:
+- [ ] Website loads with HTTPS (green padlock)
+- [ ] All pages accessible and display correctly
+- [ ] Images load properly
+- [ ] Navigation works (all links functional)
+- [ ] Contact form submits successfully
+- [ ] Email received at correct address
+- [ ] Mobile responsive design working
+- [ ] No console errors (F12 DevTools)
+
+---

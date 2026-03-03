@@ -992,9 +992,6 @@ SpimeEngine.sendVideoCommandOnInterval = function(videoId,commandName,interval){
 };
 
 function onytplayerStateChange(e) {
-	// DISABLED FOR LOCAL TESTING - YouTube API errors
-	return;
-	/*
 	  var newState = e.data;
 	  for (videoId in SpimeEngine.YTPlayers){
 		  var currentState = SpimeEngine.YTPlayers[videoId].getPlayerState();
@@ -1013,7 +1010,6 @@ function onytplayerStateChange(e) {
 			  }
 		  }
 	  }
-	  */
 }
 
 SpimeEngine.initVideos = function(){

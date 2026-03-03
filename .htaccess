@@ -1,21 +1,22 @@
 # SPG Nigeria - Apache Configuration
-# .htaccess file for Namecheap hosting
+# .htaccess file - Works on any domain
 
 # Enable RewriteEngine
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
-    # Force HTTPS - Namecheap SSL
-    RewriteCond %{HTTPS} off
-    RewriteCond %{HTTP:X-Forwarded-Proto} !https
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    # Force HTTPS (only if server supports it)
+    # Disabled for testing domains - uncomment for production
+    # RewriteCond %{HTTPS} off
+    # RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Force www to non-www (spgnigeria.com)
-    RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
-    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+    # Force www to non-www (disabled - works on any domain)
+    # RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+    # RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
-    # Remove .html extension (optional - for clean URLs)
+    # Remove .html extension (for clean URLs)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME}.html -f
